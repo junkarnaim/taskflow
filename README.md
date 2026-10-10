@@ -54,11 +54,6 @@ academic, and professional tasks through a modern dashboard.
 > Verify each feature against the current implementation before presenting
 > this README as a description of a finished application.
 
-## Architecture
-
-The application follows a client-server architecture.
-
-```mermaid
 flowchart TD
     A[User] --> B[React + Vite Frontend]
     B -->|HTTP requests / JSON| C[Express REST API]
