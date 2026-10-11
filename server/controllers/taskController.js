@@ -1,3 +1,4 @@
+
 import Task from '../models/Task.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
@@ -24,11 +25,31 @@ const withPriorityWeight = [
   },
 ];
 
+// Create a task for the authenticated user.
 export const createTask = asyncHandler(async (req, res) => {
-  const task = await Task.create({ ...req.body, userId: req.user._id });
+  const {
+    title,
+    description,
+    priority,
+    category,
+    status,
+    dueDate,
+  } = req.body;
+
+  const task = await Task.create({
+    title,
+    description,
+    priority,
+    category,
+    status,
+    dueDate,
+    userId: req.user._id,
+  });
+
   res.status(201).json({ task });
 });
 
+// Get tasks with search, filters, sorting, and pagination.
 export const getTasks = asyncHandler(async (req, res) => {
   const {
     search = '',
@@ -44,11 +65,27 @@ export const getTasks = asyncHandler(async (req, res) => {
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 50);
   const match = { userId: req.user._id };
 
-  if (status && status !== 'All') match.status = status;
-  if (priority && priority !== 'All') match.priority = priority;
-  if (category && category !== 'All') match.category = category;
-  if (search.trim()) {
-    match.title = { $regex: search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
+  if (status && status !== 'All') {
+    match.status = status;
+  }
+
+  if (priority && priority !== 'All') {
+    match.priority = priority;
+  }
+
+  if (category && category !== 'All') {
+    match.category = category;
+  }
+
+  if (typeof search === 'string' && search.trim()) {
+    const escapedSearch = search
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    match.title = {
+      $regex: escapedSearch,
+      $options: 'i',
+    };
   }
 
   const pipeline = [
@@ -57,7 +94,11 @@ export const getTasks = asyncHandler(async (req, res) => {
     { $sort: sortMap[sortBy] || sortMap.createdAt },
     {
       $facet: {
-        tasks: [{ $skip: (safePage - 1) * safeLimit }, { $limit: safeLimit }, { $project: { priorityWeight: 0 } }],
+        tasks: [
+          { $skip: (safePage - 1) * safeLimit },
+          { $limit: safeLimit },
+          { $project: { priorityWeight: 0 } },
+        ],
         total: [{ $count: 'count' }],
       },
     },
@@ -77,8 +118,12 @@ export const getTasks = asyncHandler(async (req, res) => {
   });
 });
 
+// Get one task belonging to the authenticated user.
 export const getTask = asyncHandler(async (req, res) => {
-  const task = await Task.findOne({ _id: req.params.id, userId: req.user._id });
+  const task = await Task.findOne({
+    _id: req.params.id,
+    userId: req.user._id,
+  });
 
   if (!task) {
     res.status(404);
@@ -88,11 +133,38 @@ export const getTask = asyncHandler(async (req, res) => {
   res.json({ task });
 });
 
+// Update only approved fields supplied by the client.
 export const updateTask = asyncHandler(async (req, res) => {
+  const allowedFields = [
+    'title',
+    'description',
+    'priority',
+    'category',
+    'status',
+    'dueDate',
+  ];
+
+  const updates = Object.fromEntries(
+    Object.entries(req.body).filter(([key]) =>
+      allowedFields.includes(key)
+    )
+  );
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400);
+    throw new Error('No valid task fields provided for update');
+  }
+
   const task = await Task.findOneAndUpdate(
-    { _id: req.params.id, userId: req.user._id },
-    req.body,
-    { new: true, runValidators: true }
+    {
+      _id: req.params.id,
+      userId: req.user._id,
+    },
+    { $set: updates },
+    {
+      new: true,
+      runValidators: true,
+    }
   );
 
   if (!task) {
@@ -103,11 +175,18 @@ export const updateTask = asyncHandler(async (req, res) => {
   res.json({ task });
 });
 
+// Complete or reopen a task.
 export const updateTaskStatus = asyncHandler(async (req, res) => {
   const task = await Task.findOneAndUpdate(
-    { _id: req.params.id, userId: req.user._id },
-    { status: req.body.status },
-    { new: true, runValidators: true }
+    {
+      _id: req.params.id,
+      userId: req.user._id,
+    },
+    { $set: { status: req.body.status } },
+    {
+      new: true,
+      runValidators: true,
+    }
   );
 
   if (!task) {
@@ -118,8 +197,12 @@ export const updateTaskStatus = asyncHandler(async (req, res) => {
   res.json({ task });
 });
 
+// Delete a task belonging to the authenticated user.
 export const deleteTask = asyncHandler(async (req, res) => {
-  const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+  const task = await Task.findOneAndDelete({
+    _id: req.params.id,
+    userId: req.user._id,
+  });
 
   if (!task) {
     res.status(404);

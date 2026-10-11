@@ -9,7 +9,14 @@ export default [
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: { window: 'readonly', document: 'readonly', localStorage: 'readonly' },
+      globals: {
+  window: 'readonly',
+  document: 'readonly',
+  localStorage: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
+  console: 'readonly',
+},
       parserOptions: { ecmaVersion: 'latest', ecmaFeatures: { jsx: true }, sourceType: 'module' },
     },
     settings: { react: { version: '18.3' } },

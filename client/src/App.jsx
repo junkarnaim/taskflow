@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import {
-  Activity, ArrowDown, ArrowUp, Bell, CalendarDays, Check,
-  CheckCheck, CheckCircle2, ChevronDown, Circle, ClipboardList,
-  Clock3, Command, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
+  Activity, ArrowDown, ArrowUp, Bell, CalendarDays,
+  CheckCheck, CheckCircle2, Circle, ClipboardList,
+  Clock3, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
   Menu, MoreHorizontal, Plus, Search, ShieldCheck, Sparkles,
-  Target, Trash2, TrendingUp, UserRound, X, Zap,
+  Target, Trash2, TrendingUp, X, Zap,
 } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
