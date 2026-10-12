@@ -2,14 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
 import {
-  Activity, ArrowDown, ArrowUp, Bell, CalendarDays,
-  CheckCheck, CheckCircle2, Circle, ClipboardList,
-  Clock3, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
-  Menu, Moon, MoreHorizontal, Plus, Search, ShieldCheck,
-  Sparkles, Sun, Target, Trash2, TrendingUp, X, Zap,
+  ArrowDown, ArrowUp, Bell, CalendarDays,
+  CheckCheck, CheckCircle2, ClipboardList,
+  Clock3, LoaderCircle, Menu, Moon, Plus, Search, ShieldCheck,
+  Sparkles, Sun, Target, TrendingUp,
 } from 'lucide-react';
 
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { format } from 'date-fns';
+import { messageFrom } from './utils/taskUtils';
+import StatCard from './components/StatCard';
+import TaskModal from './components/TaskModal';
+import TaskCard from './components/TaskCard';
+import Sidebar from './layout/Sidebar';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
@@ -24,25 +28,6 @@ api.interceptors.request.use((config) => {
 
 const priorities = ['Low', 'Medium', 'High'];
 const categories = ['Work', 'Study', 'Personal', 'Other'];
-const blankTask = {
-  title: '', description: '', priority: 'Medium', category: 'Work',
-  status: 'Pending', dueDate: format(new Date(), 'yyyy-MM-dd'),
-};
-
-function messageFrom(error) {
-  return error?.response?.data?.message ||
-    error?.response?.data?.errors?.[0]?.msg ||
-    error?.message ||
-    'Something went wrong. Please try again.';
-}
-
-function dateLabel(value) {
-  if (!value) return 'No due date';
-  const date = parseISO(value.slice(0, 10));
-  if (isToday(date)) return 'Today';
-  if (isTomorrow(date)) return 'Tomorrow';
-  return format(date, 'MMM d, yyyy');
-}
 
 function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -155,128 +140,7 @@ function AuthScreen({ onAuth }) {
   );
 }
 
-function StatCard({ label, value, detail, icon: Icon, color }) {
-  return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-soft">
-      <div className="flex items-start justify-between">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
-        <span className={`rounded-xl p-2.5 ${color}`}><Icon size={19} /></span>
-      </div>
-      <div className="mt-4 flex items-end justify-between">
-        <span className="text-3xl font-extrabold tracking-tight text-slate-900">{value}</span>
-        <span className="pb-1 text-xs text-slate-400">{detail}</span>
-      </div>
-    </div>
-  );
-}
 
-function TaskModal({ task, onClose, onSave }) {
-  const [form, setForm] = useState(task || blankTask);
-  const [saving, setSaving] = useState(false);
-  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  async function submit(e) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await onSave({
-        ...form,
-        dueDate: new Date(`${form.dueDate}T12:00:00`).toISOString(),
-      });
-      onClose();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/40 p-4 backdrop-blur-sm" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="my-auto w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900">{task ? 'Edit task' : 'Create a task'}</h2>
-            <p className="mt-1 text-sm text-slate-500">Give your next step a clear shape.</p>
-          </div>
-          <button className="rounded-xl p-2 text-slate-400 hover:bg-slate-100" onClick={onClose} aria-label="Close"><X size={20} /></button>
-        </div>
-        <form onSubmit={submit} className="space-y-4">
-          <label className="block text-sm font-semibold text-slate-700">Task title
-            <input className="field mt-2" name="title" value={form.title} onChange={change} minLength={2} maxLength={120} placeholder="What needs to get done?" required autoFocus />
-          </label>
-          <label className="block text-sm font-semibold text-slate-700">Description <span className="font-normal text-slate-400">(optional)</span>
-            <textarea className="field mt-2 resize-y" name="description" value={form.description || ''} onChange={change} rows={3} maxLength={1000} placeholder="Add a few useful details…" />
-          </label>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-semibold text-slate-700">Priority
-              <select className="field mt-2" name="priority" value={form.priority} onChange={change}>
-                {priorities.map((p) => <option key={p}>{p}</option>)}
-              </select>
-            </label>
-            <label className="block text-sm font-semibold text-slate-700">Category
-              <select className="field mt-2" name="category" value={form.category} onChange={change}>
-                {categories.map((c) => <option key={c}>{c}</option>)}
-              </select>
-            </label>
-          </div>
-          <label className="block text-sm font-semibold text-slate-700">Due date
-            <input className="field mt-2" type="date" name="dueDate" value={form.dueDate?.slice(0, 10) || ''} onChange={change} required />
-          </label>
-          <div className="flex gap-3 pt-3">
-            <button type="button" className="btn-secondary flex-1" onClick={onClose}>Cancel</button>
-            <button className="btn-primary flex-1" disabled={saving}>
-              {saving && <LoaderCircle size={17} className="animate-spin" />}
-              {task ? 'Save changes' : 'Create task'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function TaskCard({ task, onToggle, onEdit, onDelete }) {
-  const [menu, setMenu] = useState(false);
-  const completed = task.status === 'Completed';
-  const priorityStyle = {
-    High: 'bg-rose-50 text-rose-600',
-    Medium: 'bg-amber-50 text-amber-700',
-    Low: 'bg-emerald-50 text-emerald-700',
-  };
-  const categoryStyle = {
-    Work: 'bg-blue-50 text-blue-700',
-    Study: 'bg-violet-50 text-violet-700',
-    Personal: 'bg-pink-50 text-pink-700',
-    Other: 'bg-slate-100 text-slate-600',
-  };
-
-  return (
-    <article className={`group rounded-2xl border bg-white p-4 transition hover:border-blue-200 hover:shadow-soft sm:p-5 ${completed ? 'border-slate-100 opacity-75' : 'border-slate-200/80'}`}>
-      <div className="flex items-start gap-3.5">
-        <button className={`mt-0.5 shrink-0 rounded-full transition ${completed ? 'text-emerald-500' : 'text-slate-300 hover:text-blue-600'}`} onClick={() => onToggle(task)} aria-label={completed ? 'Mark pending' : 'Mark completed'}>
-          {completed ? <CheckCircle2 size={23} /> : <Circle size={23} />}
-        </button>
-        <div className="min-w-0 flex-1">
-          <h3 className={`break-words text-sm font-bold leading-6 ${completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{task.title}</h3>
-          {task.description && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm leading-6 text-slate-500">{task.description}</p>}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${priorityStyle[task.priority] || priorityStyle.Medium}`}>{task.priority}</span>
-            <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${categoryStyle[task.category] || categoryStyle.Other}`}>{task.category}</span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400"><CalendarDays size={13} />{dateLabel(task.dueDate)}</span>
-          </div>
-        </div>
-        <div className="relative">
-          <button className="rounded-lg p-2 text-slate-400 opacity-100 hover:bg-slate-100 sm:opacity-0 sm:group-hover:opacity-100" onClick={() => setMenu(!menu)} aria-label="Task options"><MoreHorizontal size={19} /></button>
-          {menu && (
-            <div className="absolute right-0 top-10 z-10 w-36 rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50" onClick={() => { setMenu(false); onEdit(task); }}><Activity size={15} /> Edit task</button>
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50" onClick={() => { setMenu(false); onDelete(task); }}><Trash2 size={15} /> Delete task</button>
-            </div>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
 
 function Dashboard({ user, onLogout, theme, onToggleTheme }) {
   const [tasks, setTasks] = useState([]);
@@ -369,41 +233,17 @@ function Dashboard({ user, onLogout, theme, onToggleTheme }) {
 
   return (
     <div className="min-h-screen bg-[#f6f8fc]">
-      {sidebarOpen && <button className="fixed inset-0 z-30 bg-slate-950/30 lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Close menu" />}
-      <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200/80 bg-white transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-[76px] items-center gap-3 border-b border-slate-100 px-6">
-          <div className="rounded-xl bg-blue-600 p-2 text-white shadow-lg shadow-blue-600/20"><CheckCheck size={21} /></div>
-          <span className="text-xl font-extrabold tracking-tight text-slate-900">TaskFlow<span className="text-blue-600">.</span></span>
-          <button className="ml-auto rounded-lg p-1 text-slate-400 lg:hidden" onClick={() => setSidebarOpen(false)}><X size={19} /></button>
-        </div>
-        <div className="px-4 pt-7">
-          <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Workspace</p>
-          <button className="flex w-full items-center gap-3 rounded-xl bg-blue-50 px-3.5 py-3 text-sm font-bold text-blue-700"><LayoutDashboard size={18} /> Overview <span className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-600" /></button>
-          <button onClick={() => { setStatus('Pending'); setPage(1); setSidebarOpen(false); }} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"><ListTodo size={18} /> My tasks</button>
-          <button onClick={() => { setStatus('Completed'); setPage(1); setSidebarOpen(false); }} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"><CheckCircle2 size={18} /> Completed</button>
-        </div>
-        <div className="px-4 pt-8">
-          <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Categories</p>
-          {categories.map((c, i) => (
-            <button key={c} onClick={() => { setCategory(c); setPage(1); setSidebarOpen(false); }} className={`mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition ${category === c ? 'bg-slate-100 font-semibold text-slate-900' : 'text-slate-500 hover:bg-slate-50'}`}>
-              <span className={`h-2 w-2 rounded-full ${['bg-blue-500', 'bg-violet-500', 'bg-pink-500', 'bg-slate-400'][i]}`} />{c}
-            </button>
-          ))}
-          <button onClick={() => { setCategory('All'); setStatus('All'); setPage(1); }} className="mt-2 w-full rounded-lg px-3.5 py-2 text-left text-xs font-semibold text-blue-600 hover:bg-blue-50">Clear category filters</button>
-        </div>
-        <div className="mt-auto p-4">
-          <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-4 text-white">
-            <div className="mb-3 inline-flex rounded-lg bg-white/15 p-2"><Zap size={18} /></div>
-            <p className="text-sm font-bold">Small steps, big wins.</p>
-            <p className="mt-1 text-xs leading-5 text-blue-100">Stay consistent. Progress follows.</p>
-          </div>
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-100 p-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</div>
-            <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-800">{user?.name || 'My account'}</p><p className="truncate text-xs text-slate-400">{user?.email}</p></div>
-            <button className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100" onClick={onLogout} title="Sign out"><LogOut size={17} /></button>
-          </div>
-        </div>
-      </aside>
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        setStatus={setStatus}
+        setPage={setPage}
+        setCategory={setCategory}
+        categories={categories}
+        category={category}
+        user={user}
+        onLogout={onLogout}
+      />
 
       <div className="min-h-screen lg:pl-64">
         <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-slate-200/70 bg-white/90 px-5 backdrop-blur-xl sm:px-8">
@@ -414,6 +254,7 @@ function Dashboard({ user, onLogout, theme, onToggleTheme }) {
           <div className="flex items-center gap-2 sm:gap-4">
             <span className="hidden items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 sm:flex"><CalendarDays size={14} />{format(new Date(), 'EEE, MMM d')}</span>
             <div className="hidden h-7 w-px bg-slate-200 sm:block" />
+            <button onClick={onToggleTheme} className="rounded-xl p-2.5 text-slate-500 hover:bg-slate-100" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label="Toggle color theme">{theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}</button>
             <button className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100" title="Notifications are not configured"><Bell size={19} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500" /></button>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</div>
           </div>
@@ -476,7 +317,16 @@ function Dashboard({ user, onLogout, theme, onToggleTheme }) {
         </main>
       </div>
 
-      {modal && <TaskModal key={modal.task?._id || 'new-task'} task={modal.task} onClose={() => setModal(null)} onSave={saveTask} />}
+      {modal && (
+        <TaskModal
+          key={modal.task?._id || 'new-task'}
+          task={modal.task}
+          onClose={() => setModal(null)}
+          onSave={saveTask}
+          priorities={priorities}
+          categories={categories}
+        />
+      )}
     </div>
   );
 }
@@ -525,7 +375,7 @@ export default function App() {
 
   return user 
   ?
-   <Dashboard user={user} onLogout={logout} /> 
+   <Dashboard user={user} onLogout={logout} theme={theme} onToggleTheme={toggleTheme} /> 
    : <AuthScreen onAuth={setUser} />;
 }
    
