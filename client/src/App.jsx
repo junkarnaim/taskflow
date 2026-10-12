@@ -2,9 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
 import {
-  ArrowDown, ArrowUp, CheckCheck, CheckCircle2, ClipboardList,
-  Clock3, LoaderCircle, Plus, Search, ShieldCheck,
-  Sparkles, Target, TrendingUp,
+  ArrowDown,
+  ArrowUp,
+  CheckCheck,
+  CheckCircle2,
+  ClipboardList,
+  Clock3,
+  LoaderCircle,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  TrendingUp,
 } from 'lucide-react';
 
 import { format } from 'date-fns';
@@ -12,6 +21,7 @@ import { messageFrom } from './utils/taskUtils';
 import StatCard from './components/StatCard';
 import TaskModal from './components/TaskModal';
 import TaskCard from './components/TaskCard';
+import TaskToolbar from './components/TaskToolbar';
 import Sidebar from './layout/Sidebar';
 import DashboardHeader from './layout/DashboardHeader';
 import toast from 'react-hot-toast';
@@ -271,18 +281,21 @@ function Dashboard({ user, onLogout, theme, onToggleTheme }) {
           </section>
 
           <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-soft">
-            <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:p-6 xl:flex-row xl:items-center">
-              <div><h2 className="text-lg font-extrabold text-slate-900">Your tasks</h2><p className="mt-1 text-sm text-slate-400">Keep your priorities in sight.</p></div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="relative min-w-0 sm:min-w-52"><Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" /><input className="field !py-2.5 !pl-10" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search tasks…" /></div>
-                <select className="field !w-full !py-2.5 sm:!w-36" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} aria-label="Filter by status"><option value="All">All status</option><option>Pending</option><option>Completed</option></select>
-                <select className="field !w-full !py-2.5 sm:!w-36" value={priority} onChange={(e) => { setPriority(e.target.value); setPage(1); }} aria-label="Filter by priority"><option value="All">All priority</option>{priorities.map((p) => <option key={p}>{p}</option>)}</select>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-3 sm:px-6">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500"><span className="font-semibold text-slate-700">{pagination.total}</span> tasks found{category !== 'All' && <span className="rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">{category}</span>}</div>
-              <div className="flex items-center gap-2"><label className="text-xs text-slate-400" htmlFor="sort">Sort by</label><select id="sort" className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600 outline-none" value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }}><option value="createdAt">Recently added</option><option value="dueDate">Due date</option><option value="priority">Priority</option></select><button onClick={resetFilters} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50">Reset</button></div>
-            </div>
+            <TaskToolbar
+              search={search}
+              setSearch={setSearch}
+              status={status}
+              setStatus={setStatus}
+              priority={priority}
+              setPriority={setPriority}
+              priorities={priorities}
+              category={category}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              pagination={pagination}
+              onReset={resetFilters}
+              setPage={setPage}
+            />
 
             <div className="space-y-3 p-4 sm:p-6">
               {loading ? (
