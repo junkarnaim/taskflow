@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+
 import {
   Activity, ArrowDown, ArrowUp, Bell, CalendarDays,
   CheckCheck, CheckCircle2, Circle, ClipboardList,
   Clock3, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
-  Menu, MoreHorizontal, Plus, Search, ShieldCheck, Sparkles,
-  Target, Trash2, TrendingUp, X, Zap,
+  Menu, Moon, MoreHorizontal, Plus, Search, ShieldCheck,
+  Sparkles, Sun, Target, Trash2, TrendingUp, X, Zap,
 } from 'lucide-react';
+
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -276,7 +278,7 @@ function TaskCard({ task, onToggle, onEdit, onDelete }) {
   );
 }
 
-function Dashboard({ user, onLogout }) {
+function Dashboard({ user, onLogout, theme, onToggleTheme }) {
   const [tasks, setTasks] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
   const [loading, setLoading] = useState(true);
@@ -483,6 +485,19 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(Boolean(localStorage.getItem('taskflow_token')));
 
+    const [theme, setTheme] = useState(
+    () => localStorage.getItem('taskflow_theme') || 'light'
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('taskflow_theme', theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme((current) => (current === 'light' ? 'dark' : 'light'));
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('taskflow_token');
     if (!token) {
@@ -513,3 +528,5 @@ export default function App() {
    <Dashboard user={user} onLogout={logout} /> 
    : <AuthScreen onAuth={setUser} />;
 }
+   
+
