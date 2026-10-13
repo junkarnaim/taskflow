@@ -1,16 +1,15 @@
 import TaskList from './components/TaskList';
-import { Moon, Sun } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import {
-  Activity, Bell, CalendarDays,
-  CheckCheck, CheckCircle2, Circle, ClipboardList,
+  Bell, CalendarDays,
+  CheckCheck, CheckCircle2, ClipboardList,
   Clock3, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
-  Menu, Moon, MoreHorizontal, Plus, Search, ShieldCheck,
-  Sparkles, Sun, Trash2, TrendingUp, X, Zap,
+  Menu, Plus, Search, ShieldCheck,
+  Sparkles, TrendingUp, X, Zap,
 } from 'lucide-react';
 
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
@@ -37,13 +36,6 @@ function messageFrom(error) {
     'Something went wrong. Please try again.';
 }
 
-function dateLabel(value) {
-  if (!value) return 'No due date';
-  const date = parseISO(value.slice(0, 10));
-  if (isToday(date)) return 'Today';
-  if (isTomorrow(date)) return 'Tomorrow';
-  return format(date, 'MMM d, yyyy');
-}
 
 function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -235,51 +227,7 @@ function TaskModal({ task, onClose, onSave }) {
   );
 }
 
-function TaskCard({ task, onToggle, onEdit, onDelete }) {
-  const [menu, setMenu] = useState(false);
-  const completed = task.status === 'Completed';
-  const priorityStyle = {
-    High: 'bg-rose-50 text-rose-600',
-    Medium: 'bg-amber-50 text-amber-700',
-    Low: 'bg-emerald-50 text-emerald-700',
-  };
-  const categoryStyle = {
-    Work: 'bg-blue-50 text-blue-700',
-    Study: 'bg-violet-50 text-violet-700',
-    Personal: 'bg-pink-50 text-pink-700',
-    Other: 'bg-slate-100 text-slate-600',
-  };
-
-  return (
-    <article className={`group rounded-2xl border bg-white p-4 transition hover:border-blue-200 hover:shadow-soft sm:p-5 ${completed ? 'border-slate-100 opacity-75' : 'border-slate-200/80'}`}>
-      <div className="flex items-start gap-3.5">
-        <button className={`mt-0.5 shrink-0 rounded-full transition ${completed ? 'text-emerald-500' : 'text-slate-300 hover:text-blue-600'}`} onClick={() => onToggle(task)} aria-label={completed ? 'Mark pending' : 'Mark completed'}>
-          {completed ? <CheckCircle2 size={23} /> : <Circle size={23} />}
-        </button>
-        <div className="min-w-0 flex-1">
-          <h3 className={`break-words text-sm font-bold leading-6 ${completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{task.title}</h3>
-          {task.description && <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm leading-6 text-slate-500">{task.description}</p>}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${priorityStyle[task.priority] || priorityStyle.Medium}`}>{task.priority}</span>
-            <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${categoryStyle[task.category] || categoryStyle.Other}`}>{task.category}</span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400"><CalendarDays size={13} />{dateLabel(task.dueDate)}</span>
-          </div>
-        </div>
-        <div className="relative">
-          <button className="rounded-lg p-2 text-slate-400 opacity-100 hover:bg-slate-100 sm:opacity-0 sm:group-hover:opacity-100" onClick={() => setMenu(!menu)} aria-label="Task options"><MoreHorizontal size={19} /></button>
-          {menu && (
-            <div className="absolute right-0 top-10 z-10 w-36 rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl">
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50" onClick={() => { setMenu(false); onEdit(task); }}><Activity size={15} /> Edit task</button>
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50" onClick={() => { setMenu(false); onDelete(task); }}><Trash2 size={15} /> Delete task</button>
-            </div>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function Dashboard({ user, onLogout, theme, onToggleTheme })
+function Dashboard({ user, onLogout })
 
 {
   const [tasks, setTasks] = useState([]);
@@ -453,28 +401,21 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
               <div className="flex items-center gap-2"><label className="text-xs text-slate-400" htmlFor="sort">Sort by</label><select id="sort" className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600 outline-none" value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }}><option value="createdAt">Recently added</option><option value="dueDate">Due date</option><option value="priority">Priority</option></select><button onClick={resetFilters} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50">Reset</button></div>
             </div>
 
-            <div className="space-y-3 p-4 sm:p-6">
-              {loading ? (
-                <div className="flex min-h-52 items-center justify-center gap-3 text-sm text-slate-400"><LoaderCircle size={20} className="animate-spin text-blue-600" /> Loading your tasks…</div>
-              ) : tasks.length === 0 ? (
-                <div className="flex min-h-64 flex-col items-center justify-center px-5 text-center">
-                  <div className="mb-4 rounded-2xl bg-blue-50 p-4 text-blue-600"><Target size={27} /></div>
-                  <h3 className="text-base font-extrabold text-slate-800">Nothing on your list yet</h3>
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || status !== 'All' || category !== 'All' || priority !== 'All' ? 'Try changing your filters, or create a task that matches.' : 'Start with one small task. You can build momentum from there.'}</p>
-                  <button className="btn-primary mt-5" onClick={() => setModal({ task: null })}><Plus size={17} /> Create your first task</button>
-                </div>
-              ) : tasks.map((task) => (
-                //<TaskCard key={task._id} task={task} onToggle={toggleTask} onEdit={(t) => setModal({ task: { ...t, dueDate: t.dueDate?.slice(0, 10) || format(new Date(), 'yyyy-MM-dd') } })} onDelete={deleteTask} />
-               <TaskCard key={task._id} task={task} onToggle={toggleTask} onEdit={(t) => setModal({ task: { ...t, dueDate: t.dueDate?.slice(0, 10) || format(new Date(), 'yyyy-MM-dd') } })} onDelete={deleteTask} />
-              ))}
-            </div>
-            <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <p className="text-xs text-slate-400">Page {pagination.page || page} of {pagination.pages || 1} · Showing up to 8 tasks per page</p>
-              <div className="flex gap-2">
-                <button className="btn-secondary !py-2 text-xs" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}><ArrowDown size={14} className="rotate-90" /> Previous</button>
-                <button className="btn-secondary !py-2 text-xs" disabled={page >= (pagination.pages || 1) || loading} onClick={() => setPage((p) => p + 1)}>Next <ArrowUp size={14} className="rotate-90" /></button>
-              </div>
-            </div>
+            <TaskList
+              loading={loading}
+              tasks={tasks}
+              search={search}
+              status={status}
+              category={category}
+              priority={priority}
+              page={page}
+              pagination={pagination}
+              onCreate={() => setModal({ task: null })}
+              onToggle={toggleTask}
+              onEdit={(task) => setModal({ task })}
+              onDelete={deleteTask}
+              onPageChange={setPage}
+            />
           </section>
           <p className="mt-6 text-center text-xs text-slate-400">Made for focused work. One step at a time.</p>
         </main>
@@ -488,19 +429,6 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
 export default function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(Boolean(localStorage.getItem('taskflow_token')));
-
-    const [theme, setTheme] = useState(
-    () => localStorage.getItem('taskflow_theme') || 'light'
-  );
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('taskflow_theme', theme);
-  }, [theme]);
-
-  function toggleTheme() {
-    setTheme((current) => (current === 'light' ? 'dark' : 'light'));
-  }
 
   useEffect(() => {
     const token = localStorage.getItem('taskflow_token');
