@@ -129,3 +129,40 @@ button { cursor: pointer; }
   background-color: #111827;
   color: #f1f5f9;
 }
+
+/* Targeted sidebar dark-mode fix */
+.dark aside {
+  background-color: #111827 !important;
+  border-color: #293548 !important;
+}
+
+.dark aside > div {
+  border-color: #293548;
+}
+
+.dark aside .text-slate-900,
+.dark aside .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark aside .text-slate-700 {
+  color: #dbe4f0 !important;
+}
+
+.dark aside .text-slate-600,
+.dark aside .text-slate-500 {
+  color: #b0bdce !important;
+}
+
+.dark aside .hover\:bg-slate-50:hover,
+.dark aside .hover\:bg-slate-100:hover {
+  background-color: #253247 !important;
+}
+
+.dark aside .bg-slate-100 {
+  background-color: #253247 !important;
+}
+
+.dark aside .bg-blue-50 {
+  background-color: #172b4d !important;
+}
