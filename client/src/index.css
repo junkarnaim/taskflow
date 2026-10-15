@@ -31,3 +31,101 @@ button { cursor: pointer; }
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50;
   }
 }
+
+/* TaskFlow dark theme */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0b1120;
+  color: #e2e8f0;
+}
+
+.dark .min-h-screen {
+  background-color: #0b1120 !important;
+}
+
+.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/60 {
+  background-color: #151e2e !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #253247 !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: #172b4d !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/80 {
+  border-color: #293548 !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #dbe4f0 !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #b0bdce !important;
+}
+
+.dark .text-slate-400 {
+  color: #8b9bb0 !important;
+}
+
+.dark .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: #253247 !important;
+}
+
+.dark .hover\:text-slate-900:hover {
+  color: #f8fafc !important;
+}
+
+.dark .field {
+  background-color: #151e2e;
+  border-color: #344258;
+  color: #f1f5f9;
+}
+
+.dark .field::placeholder {
+  color: #8291a6;
+}
+
+.dark .field:focus {
+  border-color: #3b82f6;
+}
+
+.dark .btn-secondary {
+  background-color: #151e2e;
+  border-color: #344258;
+  color: #dbe4f0;
+}
+
+.dark .btn-secondary:hover {
+  background-color: #253247;
+}
+
+.dark select option {
+  background-color: #111827;
+  color: #f1f5f9;
+}

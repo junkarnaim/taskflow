@@ -5,7 +5,7 @@ import {
   Bell, CalendarDays,
   CheckCheck, CheckCircle2, ClipboardList,
   Clock3, LayoutDashboard, ListTodo, LoaderCircle, LogOut,
-  Menu, Plus, Search, ShieldCheck,
+  Menu, Moon, Plus, Search, ShieldCheck, Sun,
   Sparkles, TrendingUp, X, Zap,
 } from 'lucide-react';
 
@@ -227,7 +227,7 @@ function TaskModal({ task, onClose, onSave }) {
   );
 }
 
-function Dashboard({ user, onLogout })
+function Dashboard({ user, onLogout, theme, onToggleTheme })
 
 {
   const [tasks, setTasks] = useState([]);
@@ -365,6 +365,15 @@ function Dashboard({ user, onLogout })
           <div className="flex items-center gap-2 sm:gap-4">
             <span className="hidden items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 sm:flex"><CalendarDays size={14} />{format(new Date(), 'EEE, MMM d')}</span>
             <div className="hidden h-7 w-px bg-slate-200 sm:block" />
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+            </button>
             <button className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100" title="Notifications are not configured"><Bell size={19} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500" /></button>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</div>
           </div>
@@ -428,6 +437,14 @@ function Dashboard({ user, onLogout })
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(() =>
+    localStorage.getItem('taskflow_theme') === 'dark' ? 'dark' : 'light'
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('taskflow_theme', theme);
+  }, [theme]);
   const [checking, setChecking] = useState(Boolean(localStorage.getItem('taskflow_token')));
 
   useEffect(() => {
@@ -457,6 +474,13 @@ export default function App() {
 
   return user
   ?
-   <Dashboard user={user} onLogout={logout} />
+   <Dashboard
+      user={user}
+      onLogout={logout}
+      theme={theme}
+      onToggleTheme={() =>
+        setTheme((current) => current === 'dark' ? 'light' : 'dark')
+      }
+    />
    : <AuthScreen onAuth={setUser} />;
 }
