@@ -1,5 +1,5 @@
 import TaskList from './components/TaskList';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   Bell, CalendarDays,
@@ -232,6 +232,12 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
 {
   const [tasks, setTasks] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
+  //
+  const [statistics, setStatistics] = useState({
+  completed: 0,
+  pending: 0,
+  high: 0,
+});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
@@ -250,6 +256,11 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
       });
       setTasks(data.tasks || []);
       setPagination(data.pagination || { total: 0, page: 1, pages: 1 });
+      setStatistics(data.statistics || {
+        completed: 0,
+        pending: 0,
+        high: 0,
+      });
     } catch (error) {
       toast.error(messageFrom(error));
     } finally {
@@ -262,12 +273,12 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
     return () => clearTimeout(timer);
   }, [loadTasks]);
 
-  const stats = useMemo(() => ({
+  const stats = {
     total: pagination.total,
-    completed: tasks.filter((t) => t.status === 'Completed').length,
-    pending: tasks.filter((t) => t.status === 'Pending').length,
-    high: tasks.filter((t) => t.priority === 'High' && t.status !== 'Completed').length,
-  }), [tasks, pagination.total]);
+    completed: statistics.completed,
+    pending: statistics.pending,
+    high: statistics.high,
+  };
 
   async function saveTask(form) {
     try {
@@ -391,9 +402,9 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
 
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="Tasks in view" value={stats.total} detail="Matching filters" icon={ClipboardList} color="bg-blue-50 text-blue-600" />
-            <StatCard label="Completed" value={stats.completed} detail="Current page" icon={CheckCircle2} color="bg-emerald-50 text-emerald-600" />
-            <StatCard label="Pending" value={stats.pending} detail="Current page" icon={Clock3} color="bg-amber-50 text-amber-600" />
-            <StatCard label="High priority" value={stats.high} detail="Current page" icon={TrendingUp} color="bg-rose-50 text-rose-600" />
+            <StatCard label="Completed" value={stats.completed} detail="Across matching tasks" icon={CheckCircle2} color="bg-emerald-50 text-emerald-600" />
+            <StatCard label="Pending" value={stats.pending} detail="Across matching tasks" icon={Clock3} color="bg-amber-50 text-amber-600" />
+            <StatCard label="High priority" value={stats.high} detail="Outstanding tasks" icon={TrendingUp} color="bg-rose-50 text-rose-600" />
           </section>
 
           <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-soft">

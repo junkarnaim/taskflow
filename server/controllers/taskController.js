@@ -48,8 +48,7 @@ export const createTask = asyncHandler(async (req, res) => {
 
   res.status(201).json({ task });
 });
-
-// Get tasks with search, filters, sorting, and pagination.
+// Get tasks with search, filters, sorting, pagination, and statistics.
 export const getTasks = asyncHandler(async (req, res) => {
   const {
     search = '',
@@ -65,47 +64,72 @@ export const getTasks = asyncHandler(async (req, res) => {
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 50);
   const match = { userId: req.user._id };
 
-  if (status && status !== 'All') {
-    match.status = status;
-  }
-
-  if (priority && priority !== 'All') {
-    match.priority = priority;
-  }
-
-  if (category && category !== 'All') {
-    match.category = category;
-  }
+  if (status && status !== 'All') match.status = status;
+  if (priority && priority !== 'All') match.priority = priority;
+  if (category && category !== 'All') match.category = category;
 
   if (typeof search === 'string' && search.trim()) {
     const escapedSearch = search
       .trim()
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    match.title = {
-      $regex: escapedSearch,
-      $options: 'i',
-    };
+    match.title = { $regex: escapedSearch, $options: 'i' };
   }
 
   const pipeline = [
     { $match: match },
     ...withPriorityWeight,
-    { $sort: sortMap[sortBy] || sortMap.createdAt },
     {
       $facet: {
         tasks: [
+          { $sort: sortMap[sortBy] || sortMap.createdAt },
           { $skip: (safePage - 1) * safeLimit },
           { $limit: safeLimit },
           { $project: { priorityWeight: 0 } },
         ],
         total: [{ $count: 'count' }],
+        statistics: [
+          {
+            $group: {
+              _id: null,
+              completed: {
+                $sum: {
+                  $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0],
+                },
+              },
+              pending: {
+                $sum: {
+                  $cond: [{ $eq: ['$status', 'Pending'] }, 1, 0],
+                },
+              },
+              high: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $eq: ['$priority', 'High'] },
+                        { $eq: ['$status', 'Pending'] },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ],
       },
     },
   ];
 
   const [result] = await Task.aggregate(pipeline);
   const total = result.total[0]?.count || 0;
+  const statistics = result.statistics[0] || {
+    completed: 0,
+    pending: 0,
+    high: 0,
+  };
 
   res.json({
     tasks: result.tasks,
@@ -115,9 +139,13 @@ export const getTasks = asyncHandler(async (req, res) => {
       pages: Math.ceil(total / safeLimit) || 1,
       limit: safeLimit,
     },
+    statistics: {
+      completed: statistics.completed,
+      pending: statistics.pending,
+      high: statistics.high,
+    },
   });
 });
-
 // Get one task belonging to the authenticated user.
 export const getTask = asyncHandler(async (req, res) => {
   const task = await Task.findOne({
