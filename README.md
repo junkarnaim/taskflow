@@ -1,64 +1,83 @@
 # TaskFlow — Smart Task Management App
 
-A modern, full-stack task management application designed to help users organize their daily work, prioritize tasks, track deadlines, and improve productivity through a clean, responsive dashboard.
+A modern, full-stack task management application built to help users organize daily work, manage deadlines, prioritize tasks, and track productivity through a clean, responsive dashboard.
 
-TaskFlow combines a React-based frontend with a Node.js and Express backend, MongoDB persistence, and JWT-based authentication.
+TaskFlow combines a React and Vite frontend with a Node.js and Express REST API, MongoDB persistence, JWT authentication, and a polished interface with persistent dark and light themes.
 
-**Built to demonstrate practical full-stack development skills, REST API design, authentication, database integration, and responsive UI development.**
+**Built as a full-stack developer portfolio project** to demonstrate practical skills in frontend development, REST API design, authentication, database integration, and application security.
 
 ## Features
 
 ### Task Management
-- Create, view, edit, and delete tasks.
-- Mark tasks as completed or reopen them when needed.
-- Assign priorities: Low, Medium, and High.
-- Organize tasks into Work, Study, Personal, and Other categories.
-- Set due dates and manage deadlines.
-- Search tasks by keyword.
-- Filter tasks by relevant criteria.
-- Sort tasks by due date, creation date, or priority.
-- Navigate tasks using pagination.
 
-### Dashboard & User Experience
-- Dashboard with task overview and productivity statistics.
-- Modern task management interface.
+- Create, view, edit, and delete tasks.
+- Mark tasks as completed or reopen them.
+- Set task priorities: Low, Medium, and High.
+- Organize tasks into Work, Study, Personal, and Other categories.
+- Set due dates and track deadlines.
+- Search tasks by keyword.
+- Filter tasks by status, priority, and category.
+- Sort tasks by due date, creation date, or priority.
+- Navigate through paginated task lists.
+
+### Dashboard & Productivity
+
+- Dashboard with task statistics and productivity summaries.
+- Task overview with status and priority indicators.
 - Responsive layouts for desktop and mobile screens.
-- Clear task status, priority, and category indicators.
 - Loading, error, and empty states.
-- Toast notifications for user feedback.
+- Toast messages for user feedback.
+
+### Notifications
+
+- In-app notification dropdown for pending tasks due today or overdue.
+- Unread notification indicator.
+- Mark notifications as read.
+- Read-notification state persisted in browser local storage.
+
+*Note: Notifications are derived from the tasks currently loaded by the application; this is not a server-side reminder or push-notification service.*
+
+### User Experience
+
+- Modern SaaS-inspired dashboard interface.
+- Dark and light themes.
+- Theme preference persisted across browser refreshes.
+- Interactive controls and intuitive navigation.
+- Icons powered by Lucide React.
 
 ### Authentication & Security
+
 - User registration and login.
 - JWT-based authentication.
-- Protected task management API endpoints.
+- Protected task-management endpoints.
 - User-specific task access.
 - Request validation using Express Validator.
 - Authentication rate limiting.
-- Security headers with Helmet.
+- Security headers using Helmet.
 - Environment-based configuration.
 - MongoDB integration using Mongoose.
 
 ## Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| React | Frontend UI |
-| Vite | Development server and build tooling |
-| Tailwind CSS | Styling and responsive UI |
-| Node.js | Backend runtime |
-| Express.js | REST API and routing |
-| MongoDB | Database |
-| Mongoose | Database modeling |
-| JSON Web Tokens (JWT) | Authentication |
-| Axios | HTTP requests |
-| React Router | Client-side routing |
-| React Hot Toast | Notifications |
-| Lucide React | Icons |
-| Express Validator | Request validation |
-| Helmet | HTTP security headers |
-| Git & GitHub | Version control |
+| Technology            | Purpose                              |
+| --------------------- | ------------------------------------ |
+| React                 | Frontend UI                          |
+| Vite                  | Development server and build tooling |
+| Tailwind CSS          | Styling and responsive layouts       |
+| Node.js               | Backend runtime                      |
+| Express.js            | REST API and routing                 |
+| MongoDB               | Database                             |
+| Mongoose              | Database modeling and queries        |
+| JSON Web Tokens (JWT) | Authentication                       |
+| Axios                 | HTTP requests                        |
+| React Router          | Client-side routing                  |
+| React Hot Toast       | User feedback                        |
+| Lucide React          | Icons                                |
+| Express Validator     | Request validation                   |
+| Helmet                | HTTP security headers                |
+| Git & GitHub          | Version control                      |
 
-## Architecture
+## Application Architecture
 
 ```mermaid
 flowchart TD
@@ -103,17 +122,17 @@ taskflow/
 └── README.md
 ```
 
-*Note: The tree illustrates the main project structure. Some directories may contain additional files or may be absent in a particular checkout.*
+*This tree highlights the main project files. Additional files may exist in individual directories.*
 
 ## Getting Started
 
 ### Prerequisites
 
-Install the following before running TaskFlow:
+Install the following tools before running TaskFlow:
 
 - [Node.js](https://nodejs.org/) — preferably a supported LTS release.
 - npm — included with Node.js.
-- [MongoDB Community Server](https://www.mongodb.com/try/download/community) running locally, or a MongoDB Atlas connection.
+- [MongoDB Community Server](https://www.mongodb.com/try/download/community) or a MongoDB Atlas database.
 - [Git](https://git-scm.com/).
 
 ### 1. Clone the Repository
@@ -125,7 +144,7 @@ cd taskflow
 
 ### 2. Install Dependencies
 
-Install the root, frontend, and backend dependencies using the project's installation script:
+From the project root, install the root, frontend, and backend dependencies:
 
 ```bash
 npm run install:all
@@ -133,7 +152,7 @@ npm run install:all
 
 ### 3. Configure Environment Variables
 
-Create a `.env` file inside the `server` directory, following the variable names used by your backend configuration.
+Create a `.env` file inside the `server` directory. Check the backend configuration and `.env.example` for the exact environment variable names.
 
 A typical configuration may look like this:
 
@@ -143,15 +162,15 @@ MONGO_URI=mongodb://127.0.0.1:27017/taskflow
 JWT_SECRET=replace_with_a_long_random_secret
 ```
 
-**Important:** Confirm the exact variable names against the backend source code before running the application. If your project uses a different MongoDB or JWT variable name, use that name instead.
+Use the variable names expected by your actual backend configuration. Generate a strong, unique JWT secret.
 
-Never commit real credentials, database passwords, or JWT secrets to GitHub.
+**Security:** Never commit real credentials, database passwords, or JWT secrets to GitHub.
 
 ### 4. Start MongoDB
 
-If you use a local MongoDB installation, make sure the MongoDB service is running before starting the backend.
+If using a local MongoDB installation, ensure the database service is running before starting TaskFlow.
 
-For MongoDB Atlas, use your connection string in the server environment configuration instead.
+If using MongoDB Atlas, configure your database connection string in the server environment file.
 
 ### 5. Run the Application
 
@@ -161,83 +180,80 @@ From the project root:
 npm run dev
 ```
 
-This starts the frontend and backend using the root development script.
-
 Typical local addresses:
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5001
-- Health check: http://localhost:5001/api/health
+| Service      | URL                                                                  |
+| ------------ | -------------------------------------------------------------------- |
+| Frontend     | [http://localhost:5173](http://localhost:5173)                       |
+| Backend API  | [http://localhost:5001](http://localhost:5001)                       |
+| Health check | [http://localhost:5001/api/health](http://localhost:5001/api/health) |
 
-The health-check endpoint can be used to verify that the backend is responding.
+The health-check endpoint can help verify that the backend is responding.
 
 ### 6. Build for Production
 
-Build the frontend:
+Build the frontend from the project root:
 
 ```bash
 npm run build
 ```
 
-The frontend production build is generated in the client's `dist` directory.
+The production frontend build is generated in `client/dist`.
 
-Use the production start script and deployment configuration appropriate for your backend hosting environment.
+Configure backend hosting, environment variables, database connectivity, and frontend API settings according to your deployment environment.
 
 ## API Overview
 
-The backend exposes REST API endpoints for authentication and task management.
+All task-management endpoints require valid authentication.
 
 ### Authentication
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Authenticate a user |
-| GET | `/api/auth/me` | Retrieve the authenticated user's information |
+| Method | Endpoint             | Purpose                                       |
+| ------ | -------------------- | --------------------------------------------- |
+| POST   | `/api/auth/register` | Register a user                               |
+| POST   | `/api/auth/login`    | Authenticate a user                           |
+| GET    | `/api/auth/me`       | Retrieve the authenticated user's information |
 
 ### Tasks
 
-The task endpoints are protected and require valid authentication.
+| Method | Endpoint                | Purpose            |
+| ------ | ----------------------- | ------------------ |
+| GET    | `/api/tasks`            | Retrieve tasks     |
+| POST   | `/api/tasks`            | Create a task      |
+| PUT    | `/api/tasks/:id`        | Update a task      |
+| PATCH  | `/api/tasks/:id/status` | Change task status |
+| DELETE | `/api/tasks/:id`        | Delete a task      |
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/tasks` | Retrieve tasks |
-| POST | `/api/tasks` | Create a task |
-| PUT | `/api/tasks/:id` | Update a task |
-| DELETE | `/api/tasks/:id` | Delete a task |
-
-The task listing API supports task search, filtering, sorting, and pagination according to the backend implementation.
+The task-listing endpoint supports search, filtering, sorting, and pagination according to the backend implementation.
 
 ### Health Check
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/health` | Check backend availability |
-
-*API paths and methods should be kept in sync with the actual server routes as the project evolves.*
+| Method | Endpoint      | Purpose                    |
+| ------ | ------------- | -------------------------- |
+| GET    | `/api/health` | Check backend availability |
 
 ## Security Practices
 
-TaskFlow uses several backend security measures:
+TaskFlow incorporates several backend security measures:
 
 - JWT authentication for protected endpoints.
-- Validation of incoming request data.
-- Rate limiting for authentication requests.
+- Request validation.
+- Authentication rate limiting.
 - Helmet security headers.
 - Environment variables for sensitive configuration.
-- User-specific access to task data.
+- User-specific task access.
 
-For production deployment, use HTTPS, secure secret management, appropriate CORS restrictions, and a properly secured database.
+For production deployment, use HTTPS, secure secret management, restrictive CORS settings, and a properly secured database.
 
 ## Development Workflow
 
-Run the development environment:
+Run the full development environment:
 
 ```bash
 npm run dev
 ```
 
-Run the frontend linter:
+Run frontend linting:
 
 ```bash
 npm run lint --prefix client
@@ -249,9 +265,15 @@ Build the frontend:
 npm run build
 ```
 
+Check the Git working tree:
+
+```bash
+git status
+```
+
 ## Testing Checklist
 
-The following core workflows have been manually tested during development:
+The following workflows have been manually tested during development:
 
 - [x] User registration and login.
 - [x] Creating tasks.
@@ -259,33 +281,37 @@ The following core workflows have been manually tested during development:
 - [x] Completing and reopening tasks.
 - [x] Deleting tasks.
 - [x] Searching and filtering tasks.
-- [x] Persisting tasks after a browser refresh.
-- [x] Frontend linting and production build.
+- [x] Task persistence after a browser refresh.
+- [x] Frontend production build.
+- [x] Dark and light theme implementation.
 
-Automated unit and integration test coverage should be documented separately once implemented.
+The notification dropdown has been added and the frontend production build passes. Verify its interactions in the browser before marking notification behavior as fully tested.
+
+Automated frontend and backend test coverage can be added as the project evolves.
 
 ## Future Improvements
 
-- [ ] Automated backend and frontend tests.
-- [ ] Task reminders and deadline notifications.
+- [ ] Automated unit and integration tests.
+- [ ] Server-side scheduled reminders and push notifications.
 - [ ] Calendar-based task planning.
 - [ ] Team workspaces and collaboration.
-- [ ] Advanced analytics and productivity reports.
-- [ ] Deployment with a live demo.
-- [ ] Additional accessibility and UI refinements.
+- [ ] Advanced productivity analytics.
+- [ ] Live demo and production deployment.
+- [ ] Further accessibility improvements.
 
 ## What I Learned
 
 Developing TaskFlow provides practical experience with:
 
 - Building reusable React components.
+- Managing UI state and asynchronous operations.
 - Connecting a frontend to a REST API.
-- Designing Express routes and controllers.
-- Implementing JWT authentication.
-- Modeling and querying MongoDB data with Mongoose.
-- Validating requests and applying backend security controls.
-- Managing application state and asynchronous operations.
-- Using Git and GitHub to manage project changes.
+- Designing Express routes, controllers, and middleware.
+- Implementing JWT-based authentication.
+- Modeling and querying MongoDB data using Mongoose.
+- Validating incoming requests and applying backend security controls.
+- Building responsive interfaces with Tailwind CSS.
+- Managing code changes using Git and GitHub.
 
 ## Author
 
@@ -296,8 +322,4 @@ Developing TaskFlow provides practical experience with:
 
 ## License
 
-This project is available for learning and portfolio demonstration. Add a `LICENSE` file if you intend to distribute it under a specific open-source license.
-
----
-
-If you find this project useful, consider giving the repository a star!
+This project is intended for learning and portfolio demonstration. Add a `LICENSE` file if you decide to distribute it under a specific open-source license.
