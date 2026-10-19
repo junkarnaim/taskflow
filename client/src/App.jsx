@@ -248,6 +248,54 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
   const [modal, setModal] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationStorageKey = `taskflow_read_notifications_${user?._id || user?.email || 'user'}`;
+
+  const [readNotificationIds, setReadNotificationIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(notificationStorageKey) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  const notifications = tasks
+    .filter((task) => task.status === 'Pending' && task.dueDate)
+    .filter((task) => {
+      const dueDate = String(task.dueDate).slice(0, 10);
+      return dueDate <= today;
+    })
+    .map((task) => {
+      const dueDate = String(task.dueDate).slice(0, 10);
+      return {
+        id: `${task._id}-${dueDate}`,
+        taskId: task._id,
+        title: task.title,
+        dueDate,
+        overdue: dueDate < today,
+      };
+    })
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  const unreadNotifications = notifications.filter(
+    (notification) => !readNotificationIds.includes(notification.id)
+  );
+
+  function markAllNotificationsAsRead() {
+    const nextReadIds = [
+      ...new Set([
+        ...readNotificationIds,
+        ...notifications.map((notification) => notification.id),
+      ]),
+    ];
+
+    setReadNotificationIds(nextReadIds);
+    localStorage.setItem(notificationStorageKey, JSON.stringify(nextReadIds));
+    toast.success('Notifications marked as read');
+  }
+
   const loadTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -385,7 +433,96 @@ function Dashboard({ user, onLogout, theme, onToggleTheme })
             >
               {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
             </button>
-            <button className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100" title="Notifications are not configured"><Bell size={19} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-blue-500" /></button>
+<div className="relative">
+  <button
+    type="button"
+    onClick={() => setNotificationsOpen((open) => !open)}
+    className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+    title="Notifications"
+    aria-label={`Notifications, ${unreadNotifications.length} unread`}
+    aria-expanded={notificationsOpen}
+  >
+    <Bell size={19} />
+    {unreadNotifications.length > 0 && (
+      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+        {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+      </span>
+    )}
+  </button>
+
+  {notificationsOpen && (
+    <div className="absolute right-0 top-full z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+            Notifications
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {unreadNotifications.length} unread
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={markAllNotificationsAsRead}
+          disabled={unreadNotifications.length === 0}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Mark all as read
+        </button>
+      </div>
+
+      <div className="max-h-80 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <CheckCircle2 className="mx-auto mb-2 text-emerald-500" size={25} />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              You're all caught up!
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              No overdue or due-today tasks on this page.
+            </p>
+          </div>
+        ) : (
+          notifications.map((notification) => {
+            const isRead = readNotificationIds.includes(notification.id);
+
+            return (
+              <div
+                key={notification.id}
+                className={`border-b border-slate-100 px-4 py-3 last:border-b-0 dark:border-slate-800 ${
+                  isRead ? 'opacity-60' : 'bg-blue-50/60 dark:bg-blue-950/20'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      notification.overdue ? 'bg-rose-500' : 'bg-amber-500'
+                    }`}
+                  />
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      {notification.title}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {notification.overdue ? 'Overdue' : 'Due today'} · {notification.dueDate}
+                    </p>
+                  </div>
+                  {!isRead && (
+                    <span className="mt-1 text-[10px] font-bold uppercase text-blue-600">
+                      New
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  )}
+</div>
+
+
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</div>
           </div>
         </header>
